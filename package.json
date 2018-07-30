@@ -1,0 +1,33 @@
+{
+  "name": "qaffeine",
+  "version": "0.0.1",
+  "description": "Decaffeinate your JS-powered CSS stylesheets",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomhodgins/qaffeine.git"
+  },
+  "keywords": [
+    "CSS",
+    "jsincss",
+    "extend",
+    "js-in-css",
+    "extension",
+    "polyfill",
+    "function",
+    "plugin"
+  ],
+  "author": "Tommy Hogins",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tomhodgins/qaffeine/issues"
+  },
+  "homepage": "https://github.com/tomhodgins/qaffeine#readme",
+  "dependencies": {
+    "jsincss": "^2.1.0",
+    "puppeteer": "^1.6.1"
+  }
+}
