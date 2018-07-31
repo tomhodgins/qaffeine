@@ -117,16 +117,15 @@ module.exports = function(
 
               output.media = keptRule
 
+              keptRules += `@media ${keptRule.media.mediaText} {\n`
+
               for (var l=0; l<keptRule.cssRules.length; l++) {
 
-                keptRules +=
-
-`\n@media ${keptRule.media.mediaText} {
-  ${keptRule.cssRules[l].cssText}
-}
-`
+                keptRules += `  ${keptRule.cssRules[l].cssText}\n`
 
               }
+
+              keptRules += `}\n`
 
             }
 
@@ -149,8 +148,13 @@ module.exports = function(
         .map(plugin => [plugin[0], 'hello'])
     )
 
-    let file =
+    // Output JavaScript
+    let file = ''
 
+    // If plugins
+    if (Object.keys(result.plugins).length) {
+
+      file +=
 `// jsincss
 const jsincss = ${jsincss.toString()}
 
@@ -160,8 +164,14 @@ ${
     .map(plugin => `const ${plugin[0]} = ${plugins[plugin[0]].toString()}`)
     .join('\n\n')
 }
+`
 
-${result.generic.length ? `// JS-powered rules with default event listeners
+    }
+
+    if (result.generic.length) {
+
+      file +=
+`// JS-powered rules with default event listeners
 jsincss(() =>
 
   [
@@ -170,11 +180,19 @@ ${result.generic.map(func => new Function('return ' + func)).join(',\n')}
   .map(func => func())
   .join('')
 
-)` : ''}
+)`
 
-${result.custom.length ? `// JS-powered rules with custom event listeners
-${result.custom.join('\n')}`: ''}`
+    }
 
+    if (result.custom.length) {
+
+      file +=
+`// JS-powered rules with custom event listeners
+${result.custom.join('\n')}`
+
+    }
+
+    // Output CSS stylesheet
     let renderedCSS = result.stylesheets.join('\n  ')
 
     if (outputCSS) {
@@ -184,12 +202,11 @@ ${result.custom.join('\n')}`: ''}`
     } else {
 
       file +=
-
 `// Original CSS
 let style = document.createElement('style')
 
 style.textContent = \`
-${renderedCSS}\`
+${renderedCSS.replace(/`/g, '\\`')}\`
 
 document.head.appendChild(style)`
 
@@ -215,8 +232,8 @@ document.head.appendChild(style)`
 if (process.argv[2] && process.argv[3]) {
   module.exports(
     (require(process.argv[2]) || {}), // plugins filename
-    (process.argv[3] || ''), // input CSS filename
-    (process.argv[4] || ''), // output JS filename
-    (process.argv[5] || '') // output CSS filename
+    (process.argv[3] || ''),          // input CSS filename
+    (process.argv[4] || ''),          // output JS filename
+    (process.argv[5] || '')           // output CSS filename
   )
 }
