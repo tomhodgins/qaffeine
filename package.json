@@ -1,6 +1,6 @@
 {
   "name": "qaffeine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Decaffeinate your JS-powered CSS stylesheets",
   "main": "index.js",
   "scripts": {
