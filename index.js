@@ -82,7 +82,7 @@ module.exports = function(
 
                   output.custom.push(
                     `jsincss(() =>\n`
-                    + '  ' + plugin + '(\n'
+                    + '  customStyleRule.' + plugin + '(\n'
                     + '    `' + selector + '`,\n'
                     + (args.length
                       ? '    ' + args + '\n'
@@ -97,7 +97,7 @@ module.exports = function(
                 } else {
 
                   output.generic.push(
-                    plugin + '(\n'
+                    'customStyleRule.' + plugin + '(\n'
                     + '    `' + selector + '`,\n'
                     + (args.length
                       ? '    ' + args + '\n'
@@ -116,15 +116,20 @@ module.exports = function(
 
               // plugin()
               const plugin = rule.conditionText.replace(
-                /\(--js-([^)]+)\(.+\)\)/, 
+                /\(\s*--js-([^(]+)\(.+\)\s*\)/, 
                 '$1'
               )
 
               if (plugins.stylesheet.includes(plugin)) {
 
                 // (args)
-                const args = /^\(--js-.*\((.*)\)\)/.test(rule.conditionText)
-                  && rule.conditionText.replace(/\(--js-.*\((.*)\)\)/, '$1') + ', '
+                const args = /^\(\s*--js-.*\((.*)\s*\)\s*\)/.test(rule.conditionText)
+                  && rule.conditionText
+                    .slice(1, -1)
+                    .trim()
+                    .replace(/[^(]+\((.*)\)/, '$1')
+                    .trim()
+                    + ', '
                   || ''
 
                 // { body }
@@ -152,7 +157,7 @@ module.exports = function(
 
                   output.custom.push(
                     'jsincss(() =>\n'
-                    + '  ' + plugin + '(\n' 
+                    + '  customAtRule.' + plugin + '(\n' 
                     + (args.length
                       ? '    ' + args + '\n'
                       : '')
@@ -166,7 +171,7 @@ module.exports = function(
                 } else {
 
                   output.generic.push(
-                    plugin + '(\n' 
+                    'customAtRule.' + plugin + '(\n' 
                     + (args.length
                       ? '    ' + args + '\n'
                       : '')
@@ -215,44 +220,42 @@ module.exports = function(
 
       if (Object.keys(result.plugins.stylesheet).length) {
 
-        file += Object.keys(result.plugins.stylesheet)
-          .map(plugin => `const ${plugin} = ${plugins.stylesheet[plugin].toString()}`)
-          .join('')
-          + '\n'
+        file += 'let customAtRule = {}\n\n'
+          + Object.keys(result.plugins.stylesheet)
+            .map(plugin => `customAtRule.${plugin} = ${plugins.stylesheet[plugin].toString()}`)
+            .join('\n')
+          + '\n\n'
 
       }
 
       if (Object.keys(result.plugins.rule).length) {
 
-        file += Object.keys(result.plugins.rule)
-          .map(plugin => `\nconst ${plugin} = ${plugins.rule[plugin].toString()}`)
-          .join('\n')
-          + '\n'
+        file += 'let customStyleRule = {}\n\n'
+          + Object.keys(result.plugins.rule)
+            .map(plugin => `customStyleRule.${plugin} = ${plugins.rule[plugin].toString()}`)
+            .join('\n')
+          + '\n\n'
 
       }
-
-      file += '\n'
 
     }
 
     if (result.generic.length) {
 
-      file += '\n// JS-powered rules with default event listeners\n'
+      file += '// JS-powered rules with default event listeners\n'
               + 'jsincss(() =>\n'
               + '  [\n'
               + result.generic
-                  .map(func => new Function('  return ' + func))
                   .join(',\n') + '\n'
               + '  ]\n'
-              + '  .map(func => func())\n'
-              + '  .join(``)\n'
-              + ')\n'
+              + '  .join(\'\')\n'
+              + ')\n\n'
 
     }
 
     if (result.custom.length) {
 
-      file += '\n// JS-powered rules with custom event listeners\n'
+      file += '// JS-powered rules with custom event listeners\n'
               + result.custom.join('\n')
 
     }
