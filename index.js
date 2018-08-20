@@ -1,4 +1,3 @@
-// npm install jsincss puppeteer
 const fs = require('fs')
 const jsincss = require('jsincss')
 const puppeteer = require('puppeteer')
@@ -35,11 +34,9 @@ module.exports = function(
           css: []
         }
 
-        for (let i=0; i<document.styleSheets.length; i++) {
+        for (let stylesheet of document.styleSheets) {
 
-          for (let j=0; j<document.styleSheets[i].cssRules.length; j++) {
-
-            const rule = document.styleSheets[i].cssRules[j]
+          for (let rule of stylesheet.cssRules) {
 
             // If JS-powered style rule
             if (rule.type === 1 && /--js-/.test(rule.selectorText)) {
