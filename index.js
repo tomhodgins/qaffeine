@@ -21,186 +21,178 @@ module.exports = function(
     await page.goto(`data:text/html,`, {waitUntil: 'networkidle2'})
     await page.addStyleTag({content: fs.readFileSync(inputCSS).toString()})
 
-    const result = await page.evaluate(
-      plugins => {
+    const result = await page.evaluate(plugins => {
 
-        let output = {
-          plugins: {
-            stylesheet: {},
-            rule: {}
-          },
-          generic: [],
-          custom: [],
-          css: []
-        }
+      const output = {
+        plugins: {
+          stylesheet: {},
+          rule: {}
+        },
+        generic: [],
+        custom: [],
+        css: []
+      }
 
-        for (let stylesheet of document.styleSheets) {
+      for (let stylesheet of document.styleSheets) {
 
-          for (let rule of stylesheet.cssRules) {
+        for (let rule of stylesheet.cssRules) {
 
-            // If JS-powered style rule
-            if (rule.type === 1 && /--js-/.test(rule.selectorText)) {
+          // If JS-powered style rule
+          if (rule.type === 1 && rule.selectorText.includes('--js-')) {
 
-              // selector[]
-              const selector =
-                /(.*)\[--js-.+\]/.test(rule.selectorText)
-                && rule.selectorText.match(/(.*)\[--js-.+\]/)[1]
-                || '*'
+            // selector[]
+            const selector = /(.*)\[--js-.+\]/.test(rule.selectorText)
+              && rule.selectorText.match(/(.*)\[--js-.+\]/)[1]
+              || '*'
 
-              // [plugin]
-              const plugin = rule.selectorText.replace(/.*\[--js-([^=]+).*\]/, '$1')
+            // [plugin]
+            const plugin = rule.selectorText.replace(/.*\[--js-([^=]+).*\]/, '$1')
 
-              if (plugins.rule.includes(plugin)) {
+            if (plugins.rule.includes(plugin)) {
 
-                // [="(args)"]
-                const args = /.*\[--js-.+="\((.*)\)"\]/.test(rule.selectorText)
-                  && rule.selectorText.match(/.*\[--js-.+="\((.*)\)"\]/)[1] + ', '
-                  || ''
+              // [="(args)"]
+              const args = /.*\[--js-.+="(.*)"\]/.test(rule.selectorText)
+                && rule.selectorText.match(/.*\[--js-.+="(.*)"\]/)[1] + ', '
+                || ''
 
-                // { declarations }
-                const declarations = rule.cssText
-                  .substring(rule.selectorText.length)
-                  .trim()
-                  .slice(1, -1)
-                  .trim()
+              // { declarations }
+              const declarations = rule.cssText
+                .substring(rule.selectorText.length)
+                .trim()
+                .slice(1, -1)
+                .trim()
 
-                output.plugins.rule[plugin] = 'used'
+              output.plugins.rule[plugin] = 'used'
 
-                if (
-                  Array.from(rule.style).includes('--selector')
-                  && Array.from(rule.style).includes('--events')
-                ) {
+              if (
+                Array.from(rule.style).includes('--selector')
+                && Array.from(rule.style).includes('--events')
+              ) {
 
-                const customSelector = new RegExp(/--selector: ([^;]+);/)
-                  .exec(declarations)[1]
-                
-                const customEvents = new RegExp(/--events: ([^;]+);/)
-                  .exec(declarations)[1]
+                output.custom.push(
+                  `jsincss(() =>\n`
+                  + '  customStyleRule.' + plugin + '(\n'
+                  + '    `' + selector + '`,\n'
+                  + (args.length
+                    ? '    ' + args + '\n'
+                    : '')
+                  + '    `' + declarations + '`\n'
+                  + '  ),\n'
+                  + '  ' + rule.style.getPropertyValue('--selector') + ',\n'
+                  + '  ' + rule.style.getPropertyValue('--events') + '\n'
+                  + ')'
+                )
 
-                  output.custom.push(
-                    `jsincss(() =>\n`
-                    + '  customStyleRule.' + plugin + '(\n'
-                    + '    `' + selector + '`,\n'
-                    + (args.length
-                      ? '    ' + args + '\n'
-                      : '')
-                    + '    `' + declarations + '`\n'
-                    + '  ),\n'
-                    + '  ' + customSelector + ',\n'
-                    + '  ' + customEvents + '\n'
-                    + ')'
-                  )
+              } else {
 
-                } else {
+                output.generic.push(
+                  'customStyleRule.' + plugin + '(\n'
+                  + '    `' + selector + '`,\n'
+                  + (args.length
+                    ? '    ' + args + '\n'
+                    : '')
+                  + '    `' + declarations + '`\n'
+                  + '  )'
 
-                  output.generic.push(
-                    'customStyleRule.' + plugin + '(\n'
-                    + '    `' + selector + '`,\n'
-                    + (args.length
-                      ? '    ' + args + '\n'
-                      : '')
-                    + '    `' + declarations + '`\n'
-                    + '  )'
-
-                  )
-
-                }
+                )
 
               }
-
-            // If JS-powered @supports rule
-            } else if (rule.type === 12 && /--js-/.test(rule.conditionText)) {
-
-              // plugin()
-              const plugin = rule.conditionText.replace(
-                /\(\s*--js-([^(]+)\(.+\)\s*\)/, 
-                '$1'
-              )
-
-              if (plugins.stylesheet.includes(plugin)) {
-
-                // (args)
-                const args = /^\(\s*--js-.*\((.*)\s*\)\s*\)/.test(rule.conditionText)
-                  && rule.conditionText
-                    .slice(1, -1)
-                    .trim()
-                    .replace(/[^(]+\((.*)\)/, '$1')
-                    .trim()
-                    + ', '
-                  || ''
-
-                // { body }
-                const body = rule.cssText
-                  .substring(`@supports `.length + rule.conditionText.length)
-                  .trim()
-                  .slice(1, -1)
-
-                output.plugins.stylesheet[plugin] = 'used'
-
-                if (body.includes('--selector') && body.includes('--events')) {
-
-                  let customSelector = ''
-                  let customEvents = ''
-
-                  body.replace(
-                    /--selector: ([^;]+);/g, 
-                    (string, match) => customSelector = match
-                  )
-
-                  body.replace(
-                    /--events: ([^;]+);/g, 
-                    (string, match) => customEvents = match
-                  )
-
-                  output.custom.push(
-                    'jsincss(() =>\n'
-                    + '  customAtRule.' + plugin + '(\n' 
-                    + (args.length
-                      ? '    ' + args + '\n'
-                      : '')
-                    + '    \`' + body
-                    + '  \`),\n'
-                    + '  ' + customSelector + ',\n'
-                    + '  ' + customEvents + '\n'
-                    + ')'
-                  )
-
-                } else {
-
-                  output.generic.push(
-                    'customAtRule.' + plugin + '(\n' 
-                    + (args.length
-                      ? '    ' + args + '\n'
-                      : '')
-                    + '    \`\n'
-                    + body + '\n'
-                    + '  `\n'
-                    + ')'
-                  )
-
-                }
-
-              }
-
-            // Otherwise pass rule through untouched
-            } else {
-
-              output.css.push(rule.cssText)
 
             }
+
+          // If JS-powered @supports rule
+          } else if (rule.type === 12 && rule.conditionText.includes('--js-')) {
+
+            // plugin()
+            const plugin = rule.conditionText.replace(
+              /--js-([^(]+)\(.+\)/, 
+              '$1'
+            )
+
+            if (plugins.stylesheet.includes(plugin)) {
+
+              // (args)
+              const args = /--js-[^(]+(.*)/.test(rule.conditionText)
+                && rule.conditionText
+                  .replace(/^[^(]*\((.*)\)$/, '$1')
+                  .trim()
+                  + ', '
+                || ''
+
+              // { body }
+              const body = rule.cssText
+                .substring(`@supports `.length + rule.conditionText.length)
+                .trim()
+                .slice(1, -1)
+
+              output.plugins.stylesheet[plugin] = 'used'
+
+              //if (body.includes('--selector') && body.includes('--events')) {
+              if (
+                Array.from(rule.cssRules)
+                  .find(rule => rule.selectorText === '[--options]')
+                && ['--selector', '--events'].every(prop =>
+                    Array.from(rule.cssRules)
+                      .reverse()
+                      .find(rule => rule.selectorText === '[--options]')
+                      .style
+                      .getPropertyValue(prop) !== null
+                )
+              ) {
+
+                const props = Array.from(rule.cssRules)
+                  .reverse()
+                  .find(rule => rule.selectorText === '[--options]')
+                  .style
+
+                output.custom.push(
+                  'jsincss(() =>\n'
+                  + '  customAtRule.' + plugin + '(\n' 
+                  + (args.length
+                    ? '    ' + args + '\n'
+                    : '')
+                  + '    \`' + body
+                  + '  \`),\n'
+                  + '  ' + props.getPropertyValue('--selector') + ',\n'
+                  + '  ' + props.getPropertyValue('--events') + '\n'
+                  + ')'
+                )
+
+              } else {
+
+                output.generic.push(
+                  'customAtRule.' + plugin + '(\n' 
+                  + (args.length
+                    ? '    ' + args + '\n'
+                    : '')
+                  + '    \`\n'
+                  + body + '\n'
+                  + '  `\n'
+                  + ')'
+                )
+
+              }
+
+            }
+
+          // Otherwise pass rule through untouched
+          } else {
+
+            output.css.push(rule.cssText)
 
           }
 
         }
 
-        return output
-
-      },
-      {
-        stylesheet: Object.keys(plugins.stylesheet),
-        rule: Object.keys(plugins.rule)
       }
-    )
+
+      return output
+
+    },
+    {
+      stylesheet: Object.keys(plugins.stylesheet),
+      rule: Object.keys(plugins.rule)
+    })
 
     // Output JavaScript
     let file = ''
@@ -217,7 +209,7 @@ module.exports = function(
 
       if (Object.keys(result.plugins.stylesheet).length) {
 
-        file += 'let customAtRule = {}\n\n'
+        file += 'const customAtRule = {}\n\n'
           + Object.keys(result.plugins.stylesheet)
             .map(plugin => `customAtRule.${plugin} = ${plugins.stylesheet[plugin].toString()}`)
             .join('\n')
@@ -227,7 +219,7 @@ module.exports = function(
 
       if (Object.keys(result.plugins.rule).length) {
 
-        file += 'let customStyleRule = {}\n\n'
+        file += 'const customStyleRule = {}\n\n'
           + Object.keys(result.plugins.rule)
             .map(plugin => `customStyleRule.${plugin} = ${plugins.rule[plugin].toString()}`)
             .join('\n')
@@ -267,7 +259,7 @@ module.exports = function(
     } else {
 
       file += '\n\n// Original CSS\n'
-              + 'let style = document.createElement(`style`)\n\n'
+              + 'const style = document.createElement(`style`)\n\n'
               + 'style.textContent = \`\n'
               + renderedCSS.replace(/`/g, '\`') + '\n`\n\n'
               + 'document.head.appendChild(style)'
