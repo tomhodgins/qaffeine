@@ -14,13 +14,15 @@ module.exports = function(
 
   return (async () => {
 
+    // Launch Chrome on the command-line via Puppeteer
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
 
-    // Load CSS in headless web browser
+    // Load CSS in a blank page in Chrome
     await page.goto(`data:text/html,`, {waitUntil: 'networkidle2'})
     await page.addStyleTag({content: fs.readFileSync(inputCSS).toString()})
 
+    // Parse CSSOM and separate CSS from JS-powered styles
     const result = await page.evaluate(plugins => {
 
       const output = {
@@ -33,9 +35,11 @@ module.exports = function(
         css: []
       }
 
-      for (let stylesheet of document.styleSheets) {
+      // For each stylesheet in the CSSOM
+      Array.from(document.styleSheets).forEach(stylesheet => {
 
-        for (let rule of stylesheet.cssRules) {
+        // For each rule in the stylesheet
+        Array.from(stylesheet.cssRules).forEach(rule => {
 
           // If JS-powered style rule
           if (rule.type === 1 && rule.selectorText.includes('--js-')) {
@@ -48,6 +52,7 @@ module.exports = function(
             // [plugin]
             const plugin = rule.selectorText.replace(/.*\[--js-([^=]+).*\]/, '$1')
 
+            // If we have a rule plugin with the same name
             if (plugins.rule.includes(plugin)) {
 
               // [="(args)"]
@@ -62,15 +67,18 @@ module.exports = function(
                 .slice(1, -1)
                 .trim()
 
+              // Remember that this plugin has been used
               output.plugins.rule[plugin] = 'used'
 
+              // If rule defines custom --selector and --events properties
               if (
                 Array.from(rule.style).includes('--selector')
                 && Array.from(rule.style).includes('--events')
               ) {
 
+                // Push a rule with custom events to output
                 output.custom.push(
-                  `jsincss(() =>\n`
+                  'jsincss(() =>\n'
                   + '  customStyleRule.' + plugin + '(\n'
                   + '    `' + selector + '`,\n'
                   + (args.length
@@ -85,6 +93,7 @@ module.exports = function(
 
               } else {
 
+                // Otherwise push a generic rule to output
                 output.generic.push(
                   'customStyleRule.' + plugin + '(\n'
                   + '    `' + selector + '`,\n'
@@ -109,6 +118,7 @@ module.exports = function(
               '$1'
             )
 
+            // If we have an at-rule plugin with the same name
             if (plugins.stylesheet.includes(plugin)) {
 
               // (args)
@@ -125,9 +135,11 @@ module.exports = function(
                 .trim()
                 .slice(1, -1)
 
+              // Remember that this plugin has been used
               output.plugins.stylesheet[plugin] = 'used'
 
-              //if (body.includes('--selector') && body.includes('--events')) {
+              // If group body rule contains a top-level rule for [--options]
+              // And that rule contains custom --selector and --events properties
               if (
                 Array.from(rule.cssRules)
                   .find(rule => rule.selectorText === '[--options]')
@@ -145,6 +157,7 @@ module.exports = function(
                   .find(rule => rule.selectorText === '[--options]')
                   .style
 
+                // Push a stylesheet with custom events to output
                 output.custom.push(
                   'jsincss(() =>\n'
                   + '  customAtRule.' + plugin + '(\n' 
@@ -160,6 +173,7 @@ module.exports = function(
 
               } else {
 
+                // Otherwise push a generic stylesheet to output
                 output.generic.push(
                   'customAtRule.' + plugin + '(\n' 
                   + (args.length
@@ -175,17 +189,18 @@ module.exports = function(
 
             }
 
-          // Otherwise pass rule through untouched
+          // Otherwise pass all non-JS-powered CSS rules through untouched to output
           } else {
 
             output.css.push(rule.cssText)
 
           }
 
-        }
+        })
 
-      }
+      })
 
+      // Return all JS-powered rules, names of plugins used, and CSS
       return output
 
     },
@@ -194,19 +209,21 @@ module.exports = function(
       rule: Object.keys(plugins.rule)
     })
 
-    // Output JavaScript
+    // Create JavaScript file to output
     let file = ''
 
-    // If plugins
+    // If there were plugins used
     if (
       Object.keys(result.plugins.stylesheet).length
       || Object.keys(result.plugins.rule).length
     ) {
 
+      // Add jsincss to JS file
       file += '// jsincss\n'
-              + `const jsincss = ${jsincss.toString()}\n`
-              + '\n// jsincss plugins\n'
+        + `const jsincss = ${jsincss.toString()}\n`
+        + '\n// jsincss plugins\n'
 
+      // Add any rule plugins used to JS file
       if (Object.keys(result.plugins.stylesheet).length) {
 
         file += 'const customAtRule = {}\n\n'
@@ -217,6 +234,7 @@ module.exports = function(
 
       }
 
+      // Add any at-rule plugins used to JS file
       if (Object.keys(result.plugins.rule).length) {
 
         file += 'const customStyleRule = {}\n\n'
@@ -229,53 +247,62 @@ module.exports = function(
 
     }
 
+    // Add any generic rules to JS file
     if (result.generic.length) {
 
       file += '// JS-powered rules with default event listeners\n'
-              + 'jsincss(() =>\n'
-              + '  [\n'
-              + result.generic
-                  .join(',\n') + '\n'
-              + '  ]\n'
-              + '  .join(\'\')\n'
-              + ')\n\n'
+        + 'jsincss(() =>\n'
+        + '  [\n'
+        + result.generic
+            .join(',\n') + '\n'
+        + '  ]\n'
+        + '  .join(\'\')\n'
+        + ')\n\n'
 
     }
 
+    // Add rules with custom events to JS file
     if (result.custom.length) {
 
       file += '// JS-powered rules with custom event listeners\n'
-              + result.custom.join('\n')
+        + result.custom.join('\n')
 
     }
 
     // Output CSS stylesheet
     let renderedCSS = result.css.join('\n')
 
+    // If CSS output filename specified
     if (outputCSS) {
 
+      // Write CSS file
       fs.writeFileSync(outputCSS, renderedCSS)
 
     } else {
 
+      // Otherwise add CSS styles to JS file
       file += '\n\n// Original CSS\n'
-              + 'const style = document.createElement(`style`)\n\n'
-              + 'style.textContent = \`\n'
-              + renderedCSS.replace(/`/g, '\`') + '\n`\n\n'
-              + 'document.head.appendChild(style)'
+        + 'const style = document.createElement(`style`)\n\n'
+        + 'style.textContent = \`\n'
+        + renderedCSS.replace(/`/g, '\`') + '\n`\n\n'
+        + 'document.head.appendChild(style)'
 
     }
 
+    // If JS output filename specified
     if (outputJS) {
 
+      // Write JS file
       fs.writeFileSync(outputJS, file)
 
     } else {
 
+      // Otherwise output JS file to console
       console.log(file)
 
     }
 
+    // Close Chome
     await browser.close()
 
   })()
