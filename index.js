@@ -42,22 +42,24 @@ module.exports = function(
         Array.from(stylesheet.cssRules).forEach(rule => {
 
           // If JS-powered style rule
-          if (rule.type === 1 && rule.selectorText.includes('--js-')) {
+          if (rule.type === 1 && rule.selectorText.includes('--')) {
 
             // selector[]
-            const selector = /(.*)\[--js-.+\]/.test(rule.selectorText)
-              && rule.selectorText.match(/(.*)\[--js-.+\]/)[1]
+            const selector = /(.*)\[--.+\]/.test(rule.selectorText)
+              && rule.selectorText.match(/(.*)\[--.+\]/)[1]
               || '*'
 
             // [plugin]
-            const plugin = rule.selectorText.replace(/.*\[--js-([^=]+).*\]/, '$1')
+            const plugin = rule.selectorText
+              .replace(/.*\[--([^=]+).*\]/, '$1')
+              .replace(/-([a-z])/g, (string, match) => match.toUpperCase())
 
             // If we have a rule plugin with the same name
             if (plugins.rule.includes(plugin)) {
 
               // [="(args)"]
-              const args = /.*\[--js-.+="(.*)"\]/.test(rule.selectorText)
-                && rule.selectorText.match(/.*\[--js-.+="(.*)"\]/)[1] + ', '
+              const args = /.*\[--.+="(.*)"\]/.test(rule.selectorText)
+                && rule.selectorText.match(/.*\[--.+="(.*)"\]/)[1] + ', '
                 || ''
 
               // { declarations }
@@ -86,8 +88,8 @@ module.exports = function(
                     : '')
                   + '    `' + declarations + '`\n'
                   + '  ),\n'
-                  + '  ' + rule.style.getPropertyValue('--selector') + ',\n'
-                  + '  ' + rule.style.getPropertyValue('--events') + '\n'
+                  + '  ' + rule.style.getPropertyValue('--selector').trim() + ',\n'
+                  + '  ' + rule.style.getPropertyValue('--events').trim() + '\n'
                   + ')'
                 )
 
@@ -96,12 +98,12 @@ module.exports = function(
                 // Otherwise push a generic rule to output
                 output.generic.push(
                   'customStyleRule.' + plugin + '(\n'
-                  + '    `' + selector + '`,\n'
+                  + '  `' + selector + '`,\n'
                   + (args.length
-                    ? '    ' + args + '\n'
+                    ? '  ' + args + '\n'
                     : '')
-                  + '    `' + declarations + '`\n'
-                  + '  )'
+                  + '  `' + declarations + '`\n'
+                  + ')'
 
                 )
 
@@ -110,19 +112,18 @@ module.exports = function(
             }
 
           // If JS-powered @supports rule
-          } else if (rule.type === 12 && rule.conditionText.includes('--js-')) {
+          } else if (rule.type === 12 && rule.conditionText.includes('--')) {
 
             // plugin()
-            const plugin = rule.conditionText.replace(
-              /--js-([^(]+)\(.+\)/, 
-              '$1'
-            )
+            const plugin = rule.conditionText
+              .replace(/--([^(]+)\(.+\)/, '$1')
+              .replace(/-([a-z])/g, (string, match) => match.toUpperCase())
 
             // If we have an at-rule plugin with the same name
             if (plugins.stylesheet.includes(plugin)) {
 
               // (args)
-              const args = /--js-[^(]+(.*)/.test(rule.conditionText)
+              const args = /--[^(]+(.*)/.test(rule.conditionText)
                 && rule.conditionText
                   .replace(/^[^(]*\((.*)\)$/, '$1')
                   .trim()
@@ -164,10 +165,12 @@ module.exports = function(
                   + (args.length
                     ? '    ' + args + '\n'
                     : '')
-                  + '    \`' + body
-                  + '  \`),\n'
-                  + '  ' + props.getPropertyValue('--selector') + ',\n'
-                  + '  ' + props.getPropertyValue('--events') + '\n'
+                  + '    `\n'
+                  + '      ' + body.trim().replace(/\n/g, '\n    ') + '\n'
+                  + '    `\n'
+                  + '  ),\n'
+                  + '  ' + props.getPropertyValue('--selector').trim() + ',\n'
+                  + '  ' + props.getPropertyValue('--events').trim() + '\n'
                   + ')'
                 )
 
@@ -177,10 +180,10 @@ module.exports = function(
                 output.generic.push(
                   'customAtRule.' + plugin + '(\n' 
                   + (args.length
-                    ? '    ' + args + '\n'
+                    ? '  ' + args + '\n'
                     : '')
-                  + '    \`\n'
-                  + body + '\n'
+                  + '  `\n'
+                  + '    ' + body.trim().replace(/\n/g, '\n  ') + '\n'
                   + '  `\n'
                   + ')'
                 )
@@ -252,11 +255,9 @@ module.exports = function(
 
       file += '// JS-powered rules with default event listeners\n'
         + 'jsincss(() =>\n'
-        + '  [\n'
-        + result.generic
-            .join(',\n') + '\n'
-        + '  ]\n'
-        + '  .join(\'\')\n'
+        +'  [\n'
+        + '    ' + result.generic.join(',\n').replace(/\n/gm, '\n    ') + '\n'
+        + '  ].join(\'\')\n'
         + ')\n\n'
 
     }
