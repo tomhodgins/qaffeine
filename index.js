@@ -14,6 +14,25 @@ module.exports = function(
 
   return (async () => {
 
+    // Exit if no CSS input specified
+    if (!inputCSS || !fs.existsSync(inputCSS)) {
+
+      if (!inputCSS) {
+
+        console.error('Error: No CSS stylesheet filename specified as input')
+
+      }
+
+      if (inputCSS && !fs.existsSync(inputCSS)) {
+
+        console.error(`Error: File named "${inputCSS}" cannot be found`)
+
+      }
+
+      process.exit(1)
+
+    }
+
     // Launch Chrome on the command-line via Puppeteer
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
@@ -32,7 +51,8 @@ module.exports = function(
         },
         generic: [],
         custom: [],
-        css: []
+        css: [],
+        errors: []
       }
 
       // For each stylesheet in the CSSOM
@@ -108,6 +128,11 @@ module.exports = function(
                 )
 
               }
+
+            } else {
+
+              output.errors.push(`No rule plugin named "${plugin}"`)
+              output.css.push(rule.cssText)
 
             }
 
@@ -190,6 +215,11 @@ module.exports = function(
 
               }
 
+            } else {
+
+              output.errors.push(`No stylesheet plugin named "${plugin}"`)
+              output.css.push(rule.cssText)
+
             }
 
           // Otherwise pass all non-JS-powered CSS rules through untouched to output
@@ -211,6 +241,9 @@ module.exports = function(
       stylesheet: Object.keys(plugins.stylesheet),
       rule: Object.keys(plugins.rule)
     })
+
+    // Log errors
+    result.errors.forEach(error => console.error(`Error: ${error}`))
 
     // Create JavaScript file to output
     let file = ''
