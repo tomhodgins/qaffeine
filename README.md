@@ -148,6 +148,44 @@ demo('h1', 'background: lime;')
 }
 ```
 
+### Defining custom events for extended selectors
+
+```css
+--selector: ;
+--events: [];
+```
+
+- `--selector` is either `window` or a CSS selector list as a string
+- `--events` is an array of events quoted as strings
+
+The default settings for jsincss (which qaffeine uses to run the JS-powered rules it finds) are to listen to the load, resize, input and click events on the window object, so you could think of that like this:
+
+```css
+[--example] {
+  --selector: window;
+  --events: ['load', 'resize', 'input', 'click']
+}
+```
+
+Instead, if you wanted a rule to reprocess only on the `paste` event, and only on `<textarea>` elements, you could set custom `--selector` and `--events` like this:
+
+```css
+[--example] {
+  --selector: 'textarea';
+  --events: ['paste'];
+}
+```
+
+> To see an example of an extended selector with custom events qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L297&L298) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
+
+```css
+.min-scroll-y[--element="{minScrollY: 50}"] {
+  --selector: '.min-scroll-y';
+  --events: ['scroll'];
+  border-color: limegreen;
+}
+```
+
 ## Writing Extended @supports Rules for JS-Powered At-rules
 
 ```css
@@ -180,6 +218,50 @@ demo('html { background: lime; }')
 
 ```css
 @supports --element('.minwidth', {minWidth: 300}) {
+  [--self] {
+    background: greenyellow;
+  }
+}
+```
+
+### Defining custom events for extended at-rules
+
+```css
+[--options] {
+  --selector: ;
+  --events: [];
+}
+```
+- `[--options]` a custom selector for a rule that we can use to define custom events
+- `--selector` is either `window` or a CSS selector list as a string
+- `--events` is an array of events quoted as strings
+
+The default settings for jsincss (which qaffeine uses to run the JS-powered rules it finds) are to listen to the load, resize, input and click events on the window object, so you could think of that like this:
+
+```css
+[--options] {
+  --selector: window;
+  --events: ['load', 'resize', 'input', 'click']
+}
+```
+
+Instead, if you wanted a rule to reprocess only on the `paste` event, and only on `<textarea>` elements, you could set custom `--selector` and `--events` like this:
+
+```css
+[--options] {
+  --selector: 'textarea';
+  --events: ['paste'];
+}
+```
+
+> To see an example of an extended at-rule with custom events qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L313&L316) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
+
+```css
+@supports --element('.min-scroll-y', {minScrollY: 50}) {
+  [--options] {
+    --selector: '.min-scroll-y';
+    --events: ['scroll'];
+  }
   [--self] {
     background: greenyellow;
   }
