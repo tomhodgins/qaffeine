@@ -10,7 +10,7 @@ This project provides a way to parse extended CSS on the server and separate out
 
 The easiest way to install qaffeine is via npm:
 
-```
+```bash
 npm install qaffeine
 ```
 
@@ -54,7 +54,7 @@ To extend CSS with JavaScript functions, the two following possibilities exist: 
 
 A rule plugin accepts a CSS selector list, as well as any additional options, and lastly takes a CSS declaration list (everything inside the curly brackets `{}` after the selector list. A rule plugin must return a string that is a valid CSS stylesheet.
 
-The other type of plugin is a stylesheet plugin, which takes 0 or more optional arguments, as well as one last arugment that contains a CSS stylesheet as a string, and returns a string that is a valid CSS stylesheet.
+The other type of plugin is a stylesheet plugin, which takes 0 or more optional arguments, as well as one last argument that contains a CSS stylesheet as a string, and returns a string that is a valid CSS stylesheet.
 
 If you had a plugin named `example()` that was loaded in the file where you're using qaffeine, suppose it looks like this:
 
@@ -184,7 +184,7 @@ demo('html { background: lime; }')
 }
 ```
 
-## Compatible Stylesheet Plugins
+## Known Compatible Stylesheet Plugins
 
 - [jsincss-compare-attribute](https://github.com/tomhodgins/jsincss-compare-attribute)
 - [jsincss-days](https://github.com/tomhodgins/jsincss-days)
@@ -193,9 +193,9 @@ demo('html { background: lime; }')
 - [jsincss-protocol-sniffer](https://github.com/tomhodgins/jsincss-protocol-sniffer)
 - [jsincss-viewport](https://github.com/tomhodgins/jsincss-viewport)
 - [qaffeine-demo: element query plugin, at-rule edition](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/element-query-at-rule.js)
-- [css-polyfill-patterns (dynamic values pattern, at-rule pattern)](https://github.com/tomhodgins/css-polyfill-patterns)
+- [css-polyfill-patterns: dynamic values examples, at-rule examples](https://github.com/tomhodgins/css-polyfill-patterns)
 
-## Compatible Rule Plugins
+## Known Compatible Rule Plugins
 
 - [jsincss-ancestor-selector](https://github.com/tomhodgins/jsincss-ancestor-selector)
 - [jsincss-auto-expand](https://github.com/tomhodgins/jsincss-auto-expand)
@@ -214,8 +214,10 @@ demo('html { background: lime; }')
 - [jsincss-string-match](https://github.com/tomhodgins/jsincss-string-match)
 - [jsincss-xpath-selector](https://github.com/tomhodgins/jsincss-xpath-selector)
 - [qaffeine-demo: element query plugin, selector edition](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/element-query-selector.js)
-- [css-polyfill-patterns: pseudo class pattern, simple selector pattern](https://github.com/tomhodgins/css-polyfill-patterns)
+- [css-polyfill-patterns: pseudo class examples, simple selector examples](https://github.com/tomhodgins/css-polyfill-patterns)
 
 ## More Reading
 
-- [Caffeinated Style Sheets [Web Unleashed 2018]](https://tomhodgins.com/caffeinated-style-sheets.pdf)
+- [Qaffenie walkthrough video](https://www.youtube.com/watch?v=6pRRB1gXgPo)
+- [Caffeinated Style Sheets talk slides [Web Unleashed 2018]](https://tomhodgins.com/caffeinated-style-sheets.pdf)
+- [Qaffeine demo project](https://github.com/tomhodgins/qaffeine-demo)
