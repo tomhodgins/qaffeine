@@ -2,6 +2,8 @@
 
 Decaffeinate your JS-powered CSS stylesheets
 
+![](https://i.imgur.com/RniVj8Z.gif)
+
 ## About
 
 This project provides a way to parse extended CSS on the server and separate out the plain CSS from the JS-powered styles. This allows you to write CSS stylesheets that include styles supported by JavaScript plugins.
@@ -115,7 +117,7 @@ By supplying plugins to qaffeine through this structure we can include rule and 
 ## Writing Extended Selectors for JS-Powered Rules
 
 ```css
-selector, list, here[--custom="'extended', 'selector', 'here'"] { }
+selector, list[--custom="'extended', 'selector', 'here'"] { }
 ```
 
 To extend a CSS rule for use with qaffeine, add a custom extended selector between the normal selector list and the declaration list, effectively splitting the rule in two: everything before the extended selector is your CSS selector list, and everything after your extended selector is part of the declaration list:
