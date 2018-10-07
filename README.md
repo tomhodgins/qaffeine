@@ -26,7 +26,7 @@ const qaffeine = require('qaffeine')
 
 To use qaffeine in node scripts, you can run the function supplying the following arguments:
 
-```
+```js
 qaffeine(plugins, inputCSS, outputJS, outputCSS)
 ```
 
@@ -110,7 +110,7 @@ This would load a file named `input.css`, process any `@supports` rules that inc
 
 By supplying plugins to qaffeine through this structure we can include rule and stylesheet plugins with the same name, as well as give functions a custom name for our use with qaffeine, even if the function has a different name in your JavaScript code. This makes for a flexible and comfortable stylesheet writing experience.
 
-- To see an example of a node script using qaffeine, check out [index.js](https://github.com/tomhodgins/qaffeine-demo/blob/master/index.js) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project
+> To see an example of a node script using qaffeine, check out [index.js](https://github.com/tomhodgins/qaffeine-demo/blob/master/index.js) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project
 
 ## Writing Extended Selectors for JS-Powered Rules
 
@@ -138,7 +138,7 @@ This would allow qaffeine to parse out the selector list `h1`, as well as the de
 demo('h1', 'background: lime;')
 ```
 
-- To see an example of an extended selector qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L110) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
+> To see an example of an extended selector qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L110) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
 
 ```css
 .minwidth[--element="{minWidth: 300}"] {
@@ -174,7 +174,7 @@ This would allow qaffeine to parse out the group body rule and write a call to o
 demo('html { background: lime; }')
 ```
 
-- To see an example of an extended selector qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L114) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
+> To see an example of an extended selector qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L114) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
 
 ```css
 @supports --element('.minwidth', {minWidth: 300}) {
