@@ -218,6 +218,6 @@ demo('html { background: lime; }')
 
 ## More Reading
 
-- [Qaffenie walkthrough video](https://www.youtube.com/watch?v=6pRRB1gXgPo)
+- [Qaffeine walkthrough video](https://www.youtube.com/watch?v=6pRRB1gXgPo)
 - [Caffeinated Style Sheets talk slides [Web Unleashed 2018]](https://tomhodgins.com/caffeinated-style-sheets.pdf)
 - [Qaffeine demo project](https://github.com/tomhodgins/qaffeine-demo)
