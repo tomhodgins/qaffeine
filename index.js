@@ -79,7 +79,9 @@ module.exports = function(
 
               // [="(args)"]
               const args = /.*\[--.+="(.*)"\]/.test(rule.selectorText)
-                && rule.selectorText.match(/.*\[--.+="(.*)"\]/)[1] + ', '
+                && rule.selectorText.match(/.*\[--.+="(.*)"\]/)[1]
+                  .replace(/\\"/g, '"') 
+                  + ', '
                 || ''
 
               // { declarations }
