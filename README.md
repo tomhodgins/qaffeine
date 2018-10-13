@@ -1,14 +1,18 @@
 # qaffeine
 
-Decaffeinate your JS-powered CSS stylesheets
+Decaffeinate your JS-powered CSS stylesheets server-side
 
 ![](https://i.imgur.com/RniVj8Z.gif)
+
+> Looking to work with caffeinated stylesheets client-side? Check out [deqaf](https://github.com/tomhodgins/deqaf)
 
 ## About
 
 This project provides a way to parse extended CSS on the server and separate out the plain CSS from the JS-powered styles. This allows you to write CSS stylesheets that include styles supported by JavaScript plugins.
 
 ## Installation
+
+This project is provided as a Node formatted module.
 
 The easiest way to install qaffeine is via npm:
 
@@ -22,6 +26,16 @@ Qaffeine is distributed as a CommonJS module, ready to be used with Node. The ea
 
 ```js
 const qaffeine = require('qaffeine')
+
+qaffeine(
+  {
+    stylesheet: {},
+    rules: {}
+  },
+  'input.css',
+  'output.js',
+  'output.css'
+)
 ```
 
 ### From Node
@@ -117,7 +131,7 @@ By supplying plugins to qaffeine through this structure we can include rule and 
 ## Writing Extended Selectors for JS-Powered Rules
 
 ```css
-selector, list[--custom="'extended', 'selector', 'here'"] { }
+selector, list[--custom='"extended", "selector", "here"'] { }
 ```
 
 To extend a CSS rule for use with qaffeine, add a custom extended selector between the normal selector list and the declaration list, effectively splitting the rule in two: everything before the extended selector is your CSS selector list, and everything after your extended selector is part of the declaration list:
@@ -143,7 +157,7 @@ demo('h1', 'background: lime;')
 > To see an example of an extended selector qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L110) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
 
 ```css
-.minwidth[--element="{minWidth: 300}"] {
+.minwidth[--element='{"minWidth": 300}'] {
   border-color: limegreen;
 }
 ```
@@ -163,7 +177,7 @@ The default settings for jsincss (which qaffeine uses to run the JS-powered rule
 ```css
 [--example] {
   --selector: window;
-  --events: ['load', 'resize', 'input', 'click']
+  --events: ["load", "resize", "input", "click"]
 }
 ```
 
@@ -171,17 +185,17 @@ Instead, if you wanted a rule to reprocess only on the `paste` event, and only o
 
 ```css
 [--example] {
-  --selector: 'textarea';
-  --events: ['paste'];
+  --selector: "textarea";
+  --events: ["paste"];
 }
 ```
 
 > To see an example of an extended selector with custom events qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L297&L298) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
 
 ```css
-.min-scroll-y[--element="{minScrollY: 50}"] {
-  --selector: '.min-scroll-y';
-  --events: ['scroll'];
+.min-scroll-y[--element='{"minScrollY": 50}'] {
+  --selector: ".min-scroll-y";
+  --events: ["scroll"];
   border-color: limegreen;
 }
 ```
@@ -217,7 +231,7 @@ demo('html { background: lime; }')
 > To see an example of an extended selector qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L114) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
 
 ```css
-@supports --element('.minwidth', {minWidth: 300}) {
+@supports --element(".minwidth", {"minWidth": 300}) {
   [--self] {
     background: greenyellow;
   }
@@ -241,7 +255,7 @@ The default settings for jsincss (which qaffeine uses to run the JS-powered rule
 ```css
 [--options] {
   --selector: window;
-  --events: ['load', 'resize', 'input', 'click']
+  --events: ["load", "resize", "input", "click"]
 }
 ```
 
@@ -249,18 +263,18 @@ Instead, if you wanted a rule to reprocess only on the `paste` event, and only o
 
 ```css
 [--options] {
-  --selector: 'textarea';
-  --events: ['paste'];
+  --selector: "textarea";
+  --events: ["paste"];
 }
 ```
 
 > To see an example of an extended at-rule with custom events qaffeine can read, check out [stylesheet.css](https://github.com/tomhodgins/qaffeine-demo/blob/master/src/stylesheet.css#L313&L316) from the [qaffeine-demo](https://github.com/tomhodgins/qaffeine-demo) project:
 
 ```css
-@supports --element('.min-scroll-y', {minScrollY: 50}) {
+@supports --element(".min-scroll-y", {"minScrollY": 50}) {
   [--options] {
-    --selector: '.min-scroll-y';
-    --events: ['scroll'];
+    --selector: ".min-scroll-y";
+    --events: ["scroll"];
   }
   [--self] {
     background: greenyellow;
@@ -305,3 +319,4 @@ Instead, if you wanted a rule to reprocess only on the `paste` event, and only o
 - [Qaffeine walkthrough video](https://www.youtube.com/watch?v=6pRRB1gXgPo)
 - [Caffeinated Style Sheets talk slides [Web Unleashed 2018]](https://tomhodgins.com/caffeinated-style-sheets.pdf)
 - [Qaffeine demo project](https://github.com/tomhodgins/qaffeine-demo)
+- [Deqaf demo project](https://github.com/tomhodgins/deqaf-demo)
