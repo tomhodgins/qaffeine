@@ -143,7 +143,7 @@ module.exports = function(
 
             // plugin()
             const plugin = rule.conditionText
-              .replace(/--([^(]+)\(.+\)/, '$1')
+              .replace(/\(*--([^(]+)\(.+\)\)*/, '$1')
               .replace(/-([a-z])/g, (string, match) => match.toUpperCase())
 
             // If we have an at-rule plugin with the same name
@@ -152,6 +152,7 @@ module.exports = function(
               // (args)
               const args = /--[^(]+(.*)/.test(rule.conditionText)
                 && rule.conditionText
+                  .replace(/^\((.+)\)$/g, '$1')
                   .replace(/^[^(]*\((.*)\)$/, '$1')
                   .trim()
                   + ', '
