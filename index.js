@@ -3,14 +3,19 @@ const jsincss = require('jsincss')
 const puppeteer = require('puppeteer')
 
 module.exports = function(
-  plugins = {
-    stylesheet: {},
-    rule: {}
-  },
+  plugins = {},
   inputCSS = '',
   outputJS = '',
   outputCSS = ''
 ) {
+
+  plugins = Object.assign(
+    {
+      stylesheet: {},
+      rule: {}
+    },
+    plugins
+  )
 
   return (async () => {
 

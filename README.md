@@ -87,7 +87,6 @@ That function would return a rule written for the supplied selector 50% of the t
 ```js
 qaffeine(
   {
-    stylesheet: {},
     rule: {
       example
     }
@@ -115,8 +114,7 @@ qaffeine(
   {
     stylesheet: {
       example
-    },
-    rule: {}
+    }
   },
   'input.css'
 )
