@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/tomhodgins/qaffeine#readme",
   "dependencies": {
-    "jsincss": "^2.1.0",
-    "puppeteer": "^1.6.1"
+    "jsincss": "^2.2.2",
+    "puppeteer": "^1.9.0"
   }
 }

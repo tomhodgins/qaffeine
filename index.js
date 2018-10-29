@@ -72,6 +72,7 @@ module.exports = function(
             // selector[]
             const selector = /(.*)\[--.+\]/.test(rule.selectorText)
               && rule.selectorText.match(/(.*)\[--.+\]/)[1]
+                .replace(/([>~+])\s*$/, '$1 *')
               || '*'
 
             // [plugin]
@@ -107,7 +108,7 @@ module.exports = function(
 
                 // Push a rule with custom events to output
                 output.custom.push(
-                  'jsincss(() =>\n'
+                  'jsincss(event =>\n'
                   + '  customStyleRule.' + plugin + '(\n'
                   + '    `' + selector + '`,\n'
                   + (args.length
@@ -193,7 +194,7 @@ module.exports = function(
 
                 // Push a stylesheet with custom events to output
                 output.custom.push(
-                  'jsincss(() =>\n'
+                  'jsincss(event =>\n'
                   + '  customAtRule.' + plugin + '(\n' 
                   + (args.length
                     ? '    ' + args + '\n'
@@ -295,7 +296,7 @@ module.exports = function(
     if (result.generic.length) {
 
       file += '// JS-powered rules with default event listeners\n'
-        + 'jsincss(() =>\n'
+        + 'jsincss(event =>\n'
         +'  [\n'
         + '    ' + result.generic.join(',\n').replace(/\n/gm, '\n    ') + '\n'
         + '  ].join(\'\')\n'
