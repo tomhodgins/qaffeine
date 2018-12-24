@@ -23,15 +23,11 @@ module.exports = function(
     if (!inputCSS || !fs.existsSync(inputCSS)) {
 
       if (!inputCSS) {
-
         console.error('Error: No CSS stylesheet filename specified as input')
-
       }
 
       if (inputCSS && !fs.existsSync(inputCSS)) {
-
         console.error(`Error: File named "${inputCSS}" cannot be found`)
-
       }
 
       process.exit(1)
@@ -71,9 +67,9 @@ module.exports = function(
 
             // selector[]
             const selector = /(.*)\[--.+\]/.test(rule.selectorText)
-              && rule.selectorText.match(/(.*)\[--.+\]/)[1]
+              ? rule.selectorText.match(/(.*)\[--.+\]/)[1]
                 .replace(/([>~+])\s*$/, '$1 *')
-              || '*'
+              : '*'
 
             // [plugin]
             const plugin = rule.selectorText
@@ -85,10 +81,10 @@ module.exports = function(
 
               // [="(args)"]
               const args = /.*\[--.+="(.*)"\]/.test(rule.selectorText)
-                && rule.selectorText.match(/.*\[--.+="(.*)"\]/)[1]
+                ? rule.selectorText.match(/.*\[--.+="(.*)"\]/)[1]
                   .replace(/\\"/g, '"') 
                   + ', '
-                || ''
+                : ''
 
               // { declarations }
               const declarations = rule.cssText
@@ -111,9 +107,11 @@ module.exports = function(
                   'jsincss(event =>\n'
                   + '  customStyleRule.' + plugin + '(\n'
                   + '    `' + selector + '`,\n'
-                  + (args.length
+                  + (
+                    args.length
                     ? '    ' + args + '\n'
-                    : '')
+                    : ''
+                  )
                   + '    `' + declarations + '`\n'
                   + '  ),\n'
                   + '  ' + rule.style.getPropertyValue('--selector').trim() + ',\n'
@@ -127,9 +125,11 @@ module.exports = function(
                 output.generic.push(
                   'customStyleRule.' + plugin + '(\n'
                   + '  `' + selector + '`,\n'
-                  + (args.length
+                  + (
+                    args.length
                     ? '  ' + args + '\n'
-                    : '')
+                    : ''
+                  )
                   + '  `' + declarations + '`\n'
                   + ')'
 
@@ -157,12 +157,12 @@ module.exports = function(
 
               // (args)
               const args = /--[^(]+(.*)/.test(rule.conditionText)
-                && rule.conditionText
+                ? rule.conditionText
                   .replace(/^\((.+)\)$/g, '$1')
                   .replace(/^[^(]*\((.*)\)$/, '$1')
                   .trim()
                   + ', '
-                || ''
+                : ''
 
               // { body }
               const body = rule.cssText
@@ -176,8 +176,9 @@ module.exports = function(
               // If group body rule contains a top-level rule for [--options]
               // And that rule contains custom --selector and --events properties
               if (
-                Array.from(rule.cssRules)
-                  .find(rule => rule.selectorText === '[--options]')
+                Array.from(rule.cssRules).find(rule =>
+                  rule.selectorText === '[--options]'
+                )
                 && ['--selector', '--events'].every(prop =>
                     Array.from(rule.cssRules)
                       .reverse()
@@ -196,9 +197,11 @@ module.exports = function(
                 output.custom.push(
                   'jsincss(event =>\n'
                   + '  customAtRule.' + plugin + '(\n' 
-                  + (args.length
+                  + (
+                    args.length
                     ? '    ' + args + '\n'
-                    : '')
+                    : ''
+                  )
                   + '    `\n'
                   + '      ' + body.trim().replace(/\n/g, '\n    ') + '\n'
                   + '    `\n'
@@ -213,9 +216,11 @@ module.exports = function(
                 // Otherwise push a generic stylesheet to output
                 output.generic.push(
                   'customAtRule.' + plugin + '(\n' 
-                  + (args.length
+                  + (
+                    args.length
                     ? '  ' + args + '\n'
-                    : '')
+                    : ''
+                  )
                   + '  `\n'
                   + '    ' + body.trim().replace(/\n/g, '\n  ') + '\n'
                   + '  `\n'
