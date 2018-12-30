@@ -67,9 +67,9 @@ module.exports = function(
 
             // selector[]
             const selector = /(.*)\[--.+\]/.test(rule.selectorText)
-              ? rule.selectorText.match(/(.*)\[--.+\]/)[1]
+              && rule.selectorText.match(/(.*)\[--.+\]/)[1]
                 .replace(/([>~+])\s*$/, '$1 *')
-              : '*'
+              || '*'
 
             // [plugin]
             const plugin = rule.selectorText
@@ -81,10 +81,10 @@ module.exports = function(
 
               // [="(args)"]
               const args = /.*\[--.+="(.*)"\]/.test(rule.selectorText)
-                ? rule.selectorText.match(/.*\[--.+="(.*)"\]/)[1]
+                && rule.selectorText.match(/.*\[--.+="(.*)"\]/)[1]
                   .replace(/\\"/g, '"') 
                   + ', '
-                : ''
+                || ''
 
               // { declarations }
               const declarations = rule.cssText
@@ -157,12 +157,12 @@ module.exports = function(
 
               // (args)
               const args = /--[^(]+(.*)/.test(rule.conditionText)
-                ? rule.conditionText
+                && rule.conditionText
                   .replace(/^\((.+)\)$/g, '$1')
                   .replace(/^[^(]*\((.*)\)$/, '$1')
                   .trim()
                   + ', '
-                : ''
+                || ''
 
               // { body }
               const body = rule.cssText
